@@ -21,7 +21,7 @@ SqliteStore.prototype.connect = function (cb) {
       PRAGMA temp_store=MEMORY;
       `, function (err) {
       if (err) return cb(err);
-      self._db.get(`SELECT COUNT (*) FROM ${self._tableName} WHERE lock = ""`, function (err, results) {
+      self._db.get(`SELECT COUNT (*) FROM ${self._tableName} WHERE lock = "" AND deletedAt = ""`, function (err, results) {
         if (err) return cb(err);
         return cb(null, results['COUNT (*)']);
       });
@@ -50,7 +50,7 @@ SqliteStore.prototype._afterWritten = function (cb) {
 SqliteStore.prototype.getTask = function (taskId, cb) {
   var self = this;
   self._afterWritten(function () {
-    self._db.all(`SELECT * FROM ${self._tableName} WHERE id = ? AND lock = ?`, [taskId, ''], function (err, rows) {
+    self._db.all(`SELECT * FROM ${self._tableName} WHERE id = ? AND lock = ? AND deletedAt = ""`, [taskId, ''], function (err, rows) {
       if (err) return cb(err);
       if (!rows.length) return cb();
       var row = rows[0];
@@ -92,7 +92,7 @@ SqliteStore.prototype.putTask = function (taskId, task, priority, cb) {
 SqliteStore.prototype.getLock = function (lockId, cb) {
   var self = this;
   self._afterWritten(function () {
-    self._db.all(`SELECT id, task FROM ${self._tableName} WHERE lock = ?`, [lockId || ''], function (err, rows) {
+    self._db.all(`SELECT id, task FROM ${self._tableName} WHERE lock = ? AND deletedAt = ""`, [lockId || ''], function (err, rows) {
       if (err) return cb(err);
       var tasks = {};
       rows.forEach(function (row) {
@@ -106,7 +106,7 @@ SqliteStore.prototype.getLock = function (lockId, cb) {
 
 SqliteStore.prototype.getRunningTasks = function (cb) {
   var self = this;
-  self._db.all(`SELECT * FROM ${self._tableName} WHERE NOT lock = ?`, [''], function (err, rows) {
+  self._db.all(`SELECT * FROM ${self._tableName} WHERE NOT lock = ? AND deletedAt = ""`, [''], function (err, rows) {
     if (err) return cb(err);
     var tasks = {};
     rows.forEach(function (row) {
@@ -136,7 +136,7 @@ SqliteStore.prototype.takeFirstN = function (num, cb) {
   var lockId = uuid.v4();
 
   self._afterWritten(function () {
-    self._db.run(`UPDATE ${self._tableName} SET lock = ? WHERE id IN (SELECT id FROM ${self._tableName} WHERE lock = ? ORDER BY priority DESC, added ASC LIMIT ${num})`, [lockId, ''], function (err, result) {
+    self._db.run(`UPDATE ${self._tableName} SET lock = ? WHERE id IN (SELECT id FROM ${self._tableName} WHERE lock = ? AND deletedAt = "" ORDER BY priority DESC, added ASC LIMIT ${num})`, [lockId, ''], function (err, result) {
       if (err) return cb(err);
       cb(null, this.changes ? lockId : '');
     });
@@ -147,7 +147,7 @@ SqliteStore.prototype.takeLastN = function (num, cb) {
   var self = this;
   var lockId = uuid.v4();
   self._afterWritten(function () {
-    self._db.run(`UPDATE ${self._tableName} SET lock = ? WHERE id IN (SELECT id FROM ${self._tableName} WHERE lock = ? ORDER BY priority DESC, added DESC LIMIT ${num})`, [lockId, ''], function (err, result) {
+    self._db.run(`UPDATE ${self._tableName} SET lock = ? WHERE id IN (SELECT id FROM ${self._tableName} WHERE lock = ? AND deletedAt = "" ORDER BY priority DESC, added DESC LIMIT ${num})`, [lockId, ''], function (err, result) {
       if (err) return cb(err);
       cb(null, this.changes ? lockId : '');
     });
