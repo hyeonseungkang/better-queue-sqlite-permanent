@@ -67,7 +67,7 @@ SqliteStore.prototype.getTask = function (taskId, cb) {
 SqliteStore.prototype.deleteTask = function (taskId, cb) {
   var self = this;
   self._afterWritten(function () {
-    self._db.run(`UPDATE ${self._tableName} SET deleteAt = ? WHERE id = ?`, [Date.now(), taskId], cb);
+    self._db.run(`UPDATE ${self._tableName} SET deletedAt = ? WHERE id = ?`, [Date.now(), taskId], cb);
   });
 };
 
@@ -120,7 +120,7 @@ SqliteStore.prototype.getRunningTasks = function (cb) {
 
 SqliteStore.prototype.releaseLock = function (lockId, cb) {
   var self = this;
-  self._db.run(`UPDATE ${self._tableName} SET deleteAt = ? WHERE lock = ?`, [Date.now(), lockId], cb);
+  self._db.run(`UPDATE ${self._tableName} SET deletedAt = ? WHERE lock = ?`, [Date.now(), lockId], cb);
 };
 
 
