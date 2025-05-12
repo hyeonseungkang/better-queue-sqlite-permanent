@@ -21,7 +21,7 @@ SqliteStore.prototype.connect = function (cb) {
       PRAGMA temp_store=MEMORY;
       `, function (err) {
       if (err) return cb(err);
-      self._db.get(`SELECT COUNT (*) FROM ${self._tableName} WHERE lock = "" AND deletedAt = ""`, function (err, results) {
+      self._db.get(`SELECT COUNT (*) FROM ${self._tableName} WHERE lock = "" AND deletedAt IS NULL`, function (err, results) {
         if (err) return cb(err);
         return cb(null, results['COUNT (*)']);
       });
