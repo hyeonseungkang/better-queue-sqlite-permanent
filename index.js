@@ -14,7 +14,7 @@ SqliteStore.prototype.connect = function (cb) {
   self._db = new sqlite.Database(self._path, function (err) {
     if (err) return cb(err);
     self._db.exec(`
-      CREATE TABLE IF NOT EXISTS ${self._tableName} (id TEXT UNIQUE, lock TEXT, task TEXT, priority NUMERIC, added INTEGER PRIMARY KEY AUTOINCREMENT);
+      CREATE TABLE IF NOT EXISTS ${self._tableName} (id TEXT UNIQUE, lock TEXT, task TEXT, priority NUMERIC, added INTEGER PRIMARY KEY AUTOINCREMENT, createdAt NUMERIC, deletedAt NUMERIC);
       CREATE INDEX IF NOT EXISTS priorityIndex ON ${self._tableName} (lock, priority desc, added);
       PRAGMA synchronous=OFF;
       PRAGMA journal_mode=MEMORY;
@@ -34,7 +34,7 @@ SqliteStore.prototype.connect = function (cb) {
     self._db.run('BEGIN', function () {
       tasks.forEach(function (task) {
         // TODO: Optimize (take out self._tableName evaluation)
-        self._db.run(`INSERT OR REPLACE INTO ${self._tableName} (id, task, priority, lock) VALUES (?, ?, ?, ?)`, [task.taskId, task.serializedTask, task.priority, '']);
+        self._db.run(`INSERT OR REPLACE INTO ${self._tableName} (id, task, priority, lock, createdAt) VALUES (?, ?, ?, ?, ?)`, [task.taskId, task.serializedTask, task.priority, '', Date.now()]);
       })
       self._db.run('COMMIT', cb);
     });
@@ -67,7 +67,7 @@ SqliteStore.prototype.getTask = function (taskId, cb) {
 SqliteStore.prototype.deleteTask = function (taskId, cb) {
   var self = this;
   self._afterWritten(function () {
-    self._db.run(`DELETE FROM ${self._tableName} WHERE id = ?`, [taskId], cb);
+    self._db.run(`UPDATE ${self._tableName} SET deleteAt = ? WHERE id = ?`, [Date.now(), taskId], cb);
   });
 };
 
@@ -120,7 +120,7 @@ SqliteStore.prototype.getRunningTasks = function (cb) {
 
 SqliteStore.prototype.releaseLock = function (lockId, cb) {
   var self = this;
-  self._db.run(`DELETE FROM ${self._tableName} WHERE lock = ?`, [lockId], cb);
+  self._db.run(`UPDATE ${self._tableName} SET deleteAt = ? WHERE lock = ?`, [Date.now(), lockId], cb);
 };
 
 
