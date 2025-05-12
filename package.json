@@ -1,6 +1,6 @@
 {
-  "name": "better-queue-sqlite",
-  "version": "1.0.7",
+  "name": "better-queue-sqlite-permanent",
+  "version": "1.0.8",
   "description": "sqlite store for better-queue",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diamondio/better-queue-sqlite.git"
+    "url": "git+https://github.com/hyeonseungkang/better-queue-sqlite-permanent.git"
   },
   "keywords": [
     "better",
@@ -19,9 +19,9 @@
   "author": "Diamond Inc",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/diamondio/better-queue-sqlite/issues"
+    "url": "https://github.com/hyeonseungkang/better-queue-sqlite-permanent/issues"
   },
-  "homepage": "https://github.com/diamondio/better-queue-sqlite#readme",
+  "homepage": "https://github.com/hyeonseungkang/better-queue-sqlite-permanent#readme",
   "dependencies": {
     "async": "^2.1.2",
     "sqlite3": "^5.1.2",
